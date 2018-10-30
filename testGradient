@@ -1,0 +1,41 @@
+########################testGradients.py#############################
+#######################################################################
+import pandas as pd
+import matplotlib.pyplot as plt
+
+path='T:/Mat/420/ref_test/'
+dispDiffs,forcDiffs=[],[]
+testData=pd.read_excel(path+'testGradientsTemp.xlsx',sheet_name='uniaxial_0deg1')
+disps=testData.loc[:,'Disp']
+
+for i in range (1,len(testData.index)):
+    dispDiff=testData.loc[i,'Disp']-testData.loc[i-1,'Disp']
+    dispDiffs.append(dispDiff)
+dispDiffs[-1]=dispDiffs[-2] 
+
+for i in range (1,len(testData.index)):
+    forcDiff=testData.loc[i,'Force']-testData.loc[i-1,'Force']
+    forcDiffs.append(forcDiff)
+forcDiffs[-1]=forcDiffs[-2] 
+
+dispDiffs=pd.DataFrame(dispDiffs,columns=['dispDiff']).astype(float)
+forcDiffs=pd.DataFrame(forcDiffs,columns=['forcDiff']).astype(float)
+testData=pd.concat([testData,dispDiffs,forcDiffs],axis=1)
+
+gradients=testData['forcDiff']/testData['dispDiff']
+testData=pd.concat([testData,gradients],axis=1)
+testData.columns.values[4]='Gradient'
+writer=pd.ExcelWriter(path+'Gradient.xlsx')
+testData.to_excel(writer,sheet_name='uniaxial_0deg1')
+writer.close()
+
+plt.figure(num=None, figsize=(12, 10), dpi=80, facecolor='w', edgecolor='k')
+plt.plot(disps,gradients,linewidth=0.7)
+plt.xlim(0,12)
+plt.ylim(-300,300)
+plt.xlabel('Disp')
+plt.ylabel('Gradient')
+plt.title('Test Stress/Strain Gradient')
+plt.grid(b=True, which='both',color='C7',linestyle='--')
+plt.savefig(path+'Gradient.pdf',dpi=100)
+plt.show()
